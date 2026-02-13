@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="背单词 - 高考英语3500词汇学习应用">
+    <title>背单词 - 高考英语词汇学习</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 侧边栏导航 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">背单词</span>
+            </div>
+
+            <!-- 番茄钟 -->
+            <div class="pomodoro-widget">
+                <div class="pomo-display">
+                    <span id="pomoTimer">25:00</span>
+                    <span id="pomoMode" class="pomo-mode">专注</span>
+                </div>
+                <div class="pomo-controls">
+                    <button class="btn-icon-small" id="pomoStart" title="开始/暂停">▶️</button>
+                    <button class="btn-icon-small" id="pomoReset" title="重置">⏹️</button>
+                    <button class="btn-icon-small" id="pomoModeToggle" title="切换模式">🔄</button>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span>首页</span>
+                </button>
+                <button class="nav-item" data-page="learn">
+                    <span class="nav-icon">📖</span>
+                    <span>学习</span>
+                </button>
+                <button class="nav-item" data-page="review">
+                    <span class="nav-icon">🔄</span>
+                    <span>复习</span>
+                </button>
+                <button class="nav-item" data-page="wrongbook">
+                    <span class="nav-icon">❌</span>
+                    <span>错题本</span>
+                </button>
+                <button class="nav-item" data-page="favorites">
+                    <span class="nav-icon">⭐</span>
+                    <span>收藏夹</span>
+                </button>
+                <button class="nav-item" data-page="wordlist">
+                    <span class="nav-icon">📋</span>
+                    <span>词库</span>
+                </button>
+                <button class="nav-item" data-page="achievements">
+                    <span class="nav-icon">🏆</span>
+                    <span>成就</span>
+                </button>
+                <button class="nav-item" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="streak-badge">
+                    <span class="streak-icon">🔥</span>
+                    <span class="streak-count" id="streakCount">0</span>
+                    <span class="streak-label">天连续</span>
+                </div>
+                <div class="total-words-badge" style="margin-top: 10px; opacity: 0.8; font-size: 0.9em;" title="总词库大小">
+                    <span class="book-icon">📚</span>
+                    <span id="totalWordsCount">--</span> 词
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 首页仪表盘 -->
+            <section class="page active" id="page-dashboard">
+                <header class="page-header">
+                    <h1>欢迎回来！</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-icon" id="themeToggle" title="切换主题">
+                            <span class="theme-icon">🌙</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="dashboard-grid">
+                    <!-- 今日目标卡片 -->
+                    <div class="card card-primary today-goal">
+                        <div class="card-header">
+                            <h3>学习进度</h3>
+                            <span class="date" id="todayDate"></span>
+                        </div>
+                        <div class="progress-ring-container">
+                            <svg class="progress-ring" viewBox="0 0 120 120">
+                                <circle class="progress-ring-bg" cx="60" cy="60" r="50" />
+                                <circle class="progress-ring-fill" cx="60" cy="60" r="50" id="progressRing" />
+                            </svg>
+                            <div class="progress-text">
+                                <span class="progress-current" id="todayLearned">0</span>
+                                <span class="progress-separator">/</span>
+                                <span class="progress-total" id="dailyGoal">20</span>
+                            </div>
+                        </div>
+                        <div class="goal-actions">
+                            <button class="btn btn-primary" id="startLearnBtn">开始学习</button>
+                            <button class="btn btn-secondary" id="startReviewBtn">开始复习</button>
+                        </div>
+                    </div>
+
+                    <!-- 统计数据 -->
+                    <div class="card stats-card">
+                        <h3>学习统计</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalWords">0</span>
+                                <span class="stat-label">总词汇</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="masteredWords">0</span>
+                                <span class="stat-label">已掌握</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="learningWords">0</span>
+                                <span class="stat-label">学习中</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="reviewDue">0</span>
+                                <span class="stat-label">待复习</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 正确率 -->
+                    <div class="card accuracy-card">
+                        <h3>学习正确率</h3>
+                        <div class="accuracy-display">
+                            <span class="accuracy-value" id="accuracy">0%</span>
+                        </div>
+                        <div class="accuracy-bar">
+                            <div class="accuracy-fill" id="accuracyBar"></div>
+                        </div>
+                    </div>
+
+                    <!-- 学习日历 -->
+                    <div class="card calendar-card">
+                        <h3>学习日历</h3>
+                        <div class="calendar-container" id="calendar"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 学习页面 -->
+            <section class="page" id="page-learn">
+                <header class="page-header">
+                    <h1>学习新词</h1>
+                    <div class="mode-selector">
+                        <button class="mode-btn active" data-mode="flashcard">卡片</button>
+                        <button class="mode-btn" data-mode="spelling">拼写</button>
+                        <button class="mode-btn" data-mode="listening">听力</button>
+                        <button class="mode-btn" data-mode="choice">选择</button>
+                        <button class="mode-btn" data-mode="forms">词形</button>
+                    </div>
+                </header>
+
+                <div class="learn-container">
+                    <!-- 卡片学习模式 -->
+                    <div class="learn-mode active" id="mode-flashcard">
+                        <div class="flashcard-container">
+                            <div class="flashcard" id="flashcard">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front">
+                                        <div class="word-display">
+                                            <span class="word" id="cardWord">ability</span>
+                                            <span class="phonetic" id="cardPhonetic">/əˈbɪlɪti/</span>
+                                            <button class="btn btn-icon speak-btn" id="speakBtn">🔊</button>
+                                        </div>
+                                        <p class="flip-hint">点击卡片查看释义</p>
+                                    </div>
+                                    <div class="flashcard-back">
+                                        <div class="translation-display">
+                                            <span class="word-type" id="cardType">n.</span>
+                                            <span class="translation" id="cardTranslation">能力，才能</span>
+                                        </div>
+                                        <div class="phrases-list" id="cardPhrases"></div>
+                                        <div class="forms-list" id="cardForms"></div>
+                                        <div class="examples-list" id="cardExamples"></div>
+                                        <button class="btn btn-icon edit-btn" id="editWordBtn" title="编辑单词"
+                                            style="position: absolute; top: 10px; right: 10px;">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-danger" id="dontKnowBtn">不认识</button>
+                                <button class="btn btn-success" id="knowBtn">认识</button>
+                            </div>
+                            <div class="card-progress">
+                                <span id="cardProgress">1 / 20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 拼写测试模式 -->
+                    <div class="learn-mode" id="mode-spelling">
+                        <div class="spelling-container">
+                            <div class="spelling-question">
+                                <p class="translation-hint" id="spellingHint">能力，才能</p>
+                                <button class="btn btn-icon speak-btn" id="spellingSpeak">🔊</button>
+                            </div>
+                            <div class="spelling-input-container">
+                                <input type="text" class="spelling-input" id="spellingInput" placeholder="输入英文单词..."
+                                    autocomplete="off">
+                                <button class="btn btn-primary" id="checkSpellingBtn">检查</button>
+                            </div>
+                            <div class="spelling-feedback" id="spellingFeedback"></div>
+                        </div>
+                    </div>
+
+                    <!-- 听力模式 -->
+                    <div class="learn-mode" id="mode-listening">
+                        <div class="listening-container">
+                            <div class="listening-prompt">
+                                <button class="btn btn-large btn-primary" id="playAudioBtn">
+                                    <span class="play-icon">🔊</span>
+                                    <span>播放发音</span>
+                                </button>
+                            </div>
+                            <div class="listening-input-container">
+                                <input type="text" class="spelling-input" id="listeningInput" placeholder="输入听到的单词..."
+                                    autocomplete="off">
+                                <button class="btn btn-primary" id="checkListeningBtn">检查</button>
+                            </div>
+                            <div class="listening-feedback" id="listeningFeedback"></div>
+                        </div>
+                    </div>
+
+                    <!-- 选择题模式 -->
+                    <div class="learn-mode" id="mode-choice">
+                        <div class="choice-container">
+                            <div class="choice-question">
+                                <span class="choice-word" id="choiceWord">ability</span>
+                                <span class="choice-phonetic" id="choicePhonetic">/əˈbɪlɪti/</span>
+                                <button class="btn btn-icon speak-btn" id="choiceSpeak">🔊</button>
+                            </div>
+                            <div class="choice-options" id="choiceOptions">
+                                <!-- 选项动态生成 -->
+                            </div>
+                            <div class="choice-feedback" id="choiceFeedback"></div>
+                        </div>
+                    </div>
+
+                    <!-- 词形变化模式 -->
+                    <div class="learn-mode" id="mode-forms">
+                        <div class="forms-container">
+                            <div class="forms-word">
+                                <span class="word" id="formsWord">ability</span>
+                                <span class="phonetic" id="formsPhonetic">/əˈbɪlɪti/</span>
+                            </div>
+                            <div class="forms-grid" id="formsGrid">
+                                <!-- 词形变化动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 复习页面 -->
+            <section class="page" id="page-review">
+                <header class="page-header">
+                    <h1>复习</h1>
+                    <div class="header-actions">
+                        <span class="review-count">待复习: <span id="reviewCount">0</span></span>
+                        <button class="btn btn-primary" id="startReviewBtn">开始复习</button>
+                    </div>
+                </header>
+
+                <!-- 学习进度概览 -->
+                <div class="review-stats" id="reviewStats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statNew">0</div>
+                        <div class="stat-label">生词</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statLearning">0</div>
+                        <div class="stat-label">学习中</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statMastered">0</div>
+                        <div class="stat-label">已掌握</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAccuracy">0%</div>
+                        <div class="stat-label">正确率</div>
+                    </div>
+                </div>
+
+                <!-- 复习计划 -->
+                <div class="review-plan" id="reviewPlan">
+                    <h2 style="margin-bottom: 16px; font-size: 18px;">📅 复习计划</h2>
+                    <div id="reviewSchedule">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 错题本页面 -->
+            <section class="page" id="page-wrongbook">
+                <header class="page-header">
+                    <h1>错题本</h1>
+                    <button class="btn btn-secondary" id="practiceWrongBtn">练习错词</button>
+                </header>
+                <div class="word-list-container" id="wrongBookList">
+                    <div class="empty-state">
+                        <span class="empty-icon">📝</span>
+                        <p>还没有错题，继续保持！</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 收藏夹页面 -->
+            <section class="page" id="page-favorites">
+                <header class="page-header">
+                    <h1>收藏夹</h1>
+                    <button class="btn btn-secondary" id="practiceFavBtn">练习收藏</button>
+                </header>
+                <div class="word-list-container" id="favoritesList">
+                    <div class="empty-state">
+                        <span class="empty-icon">⭐</span>
+                        <p>还没有收藏的单词</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 词库页面 -->
+            <section class="page" id="page-wordlist">
+                <header class="page-header">
+                    <h1>词库管理</h1>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="importBtn">导入词库</button>
+                        <button class="btn btn-secondary" id="exportBtn">导出数据</button>
+                    </div>
+                </header>
+                <div class="wordlist-controls">
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索单词...">
+                    <select class="filter-select" id="filterSelect">
+                        <option value="all">全部</option>
+                        <option value="new">生词</option>
+                        <option value="learning">学习中</option>
+                        <option value="mastered">已掌握</option>
+                    </select>
+                </div>
+                <div class="word-list-container" id="wordListContainer">
+                    <!-- 单词列表动态生成 -->
+                </div>
+                <!-- 导入文件输入 -->
+                <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
+            </section>
+
+            <!-- 成就页面 -->
+            <section class="page" id="page-achievements">
+                <header class="page-header">
+                    <h1>成就徽章</h1>
+                </header>
+                <div class="achievements-grid" id="achievementsGrid">
+                    <!-- 成就徽章动态生成 -->
+                </div>
+            </section>
+
+            <!-- 设置页面 -->
+            <section class="page" id="page-settings">
+                <header class="page-header">
+                    <h1>设置</h1>
+                </header>
+                <div class="settings-container">
+                    <div class="setting-group">
+                        <h3>学习设置</h3>
+                        <div class="setting-item">
+                            <label>每组学习数量</label>
+                            <input type="number" class="setting-input" id="batchSize" value="20" min="5" max="100"
+                                title="每次学习会话加载的单词数量">
+                        </div>
+                        <div class="setting-item">
+                            <label>每日新词目标</label>
+                            <input type="number" class="setting-input" id="dailyNewGoal" value="20" min="5" max="100">
+                        </div>
+                        <div class="setting-item">
+                            <label>每日复习目标</label>
+                            <input type="number" class="setting-input" id="dailyReviewGoal" value="50" min="10"
+                                max="200">
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>显示设置</h3>
+                        <div class="setting-item">
+                            <label>主题模式</label>
+                            <select class="setting-select" id="themeSelect">
+                                <option value="dark">深色模式</option>
+                                <option value="light">浅色模式</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>自动播放发音</label>
+                            <label class="switch">
+                                <input type="checkbox" id="autoSpeak">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions" style="margin-top: 20px; text-align: center;">
+                        <button class="btn btn-primary btn-large" id="saveSettingsBtn">保存设置</button>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>数据管理</h3>
+                        <div class="setting-actions">
+                            <button class="btn btn-secondary" id="backupDataBtn">备份数据</button>
+                            <button class="btn btn-secondary" id="restoreDataBtn">恢复数据</button>
+                            <button class="btn btn-danger" id="resetDataBtn">重置所有数据</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 编辑单词模态框 -->
+    <div class="modal" id="editWordModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>编辑单词: <span id="editWordTitle"></span></h3>
+                <button class="modal-close" id="editWordClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>中文释义</label>
+                    <input type="text" id="editTranslation" class="form-input" placeholder="输入中文释义">
+                </div>
+                <div class="form-group">
+                    <label>例句 (每行一句, 支持 "英文 | 中文" 格式)</label>
+                    <textarea id="editExamples" class="form-input" rows="5"
+                        placeholder="Example sentence | 例句翻译"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>笔记 / 助记</label>
+                    <textarea id="editNotes" class="form-input" rows="3" placeholder="添加您的个人笔记..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelEditBtn">取消</button>
+                <button class="btn btn-primary" id="saveEditBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">提示</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 脚本 -->
+    <script src="js/words.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/vocabulary.js"></script>
+    <script src="js/spaced-rep.js"></script>
+    <script src="js/achievement.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/pomodoro.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

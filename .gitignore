@@ -1,0 +1,23 @@
+# 临时文件
+*.log
+*.tmp
+node_modules/
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*~
+
+# 系统文件
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# 临时脚本
+merge_*.js
+sync_*.js
+
+# 构建/转换用的原始数据和脚本
+data/
+scripts/
