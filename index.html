@@ -112,7 +112,7 @@
                         </div>
                         <div class="goal-actions">
                             <button class="btn btn-primary" id="startLearnBtn">开始学习</button>
-                            <button class="btn btn-secondary" id="startReviewBtn">开始复习</button>
+                            <button class="btn btn-secondary" id="dashboardStartReviewBtn">开始复习</button>
                         </div>
                     </div>
 
@@ -272,13 +272,60 @@
                 </div>
             </section>
 
+            <!-- 学习总结页面 -->
+            <section class="page" id="page-summary">
+                <header class="page-header">
+                    <h1>学习总结</h1>
+                </header>
+
+                <div class="summary-page-container">
+                    <div class="summary-hero card">
+                        <div class="summary-icon">🏆</div>
+                        <h2 id="summaryTitle">本轮学习已完成！</h2>
+                        <p id="summarySubtitle">继续保持，每天进步一点点</p>
+                    </div>
+
+                    <div class="summary-stats-grid">
+                        <div class="card summary-stat-card">
+                            <span class="stat-label">单词总数</span>
+                            <span class="stat-value" id="summaryTotal">0</span>
+                        </div>
+                        <div class="card summary-stat-card">
+                            <span class="stat-label">正确数</span>
+                            <span class="stat-value success" id="summaryCorrect">0</span>
+                        </div>
+                        <div class="card summary-stat-card">
+                            <span class="stat-label">正确率</span>
+                            <span class="stat-value" id="summaryAccuracy">0%</span>
+                        </div>
+                        <div class="card summary-stat-card">
+                            <span class="stat-label">本次用时</span>
+                            <span class="stat-value" id="summaryDuration">0s</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-words-section card">
+                        <h3>📋 本轮词汇回顾</h3>
+                        <div class="summary-word-list" id="summaryWordList">
+                            <!-- 动态渲染 -->
+                        </div>
+                    </div>
+
+                    <div class="summary-actions">
+                        <button class="btn btn-primary btn-large" id="summaryBackBtn">返回首页</button>
+                        <button class="btn btn-secondary btn-large" id="summaryReviewWrongBtn"
+                            style="display: none;">复习错词</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- 复习页面 -->
             <section class="page" id="page-review">
                 <header class="page-header">
                     <h1>复习</h1>
                     <div class="header-actions">
                         <span class="review-count">待复习: <span id="reviewCount">0</span></span>
-                        <button class="btn btn-primary" id="startReviewBtn">开始复习</button>
+                        <button class="btn btn-primary" id="reviewStartReviewBtn">开始复习</button>
                     </div>
                 </header>
 

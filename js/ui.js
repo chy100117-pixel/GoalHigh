@@ -16,8 +16,13 @@ const UI = {
         currentIndex: 0,
         mode: 'learn', // 'learn' | 'review' | 'wrongbook' | 'favorites'
         correctCount: 0,
-        wrongCount: 0
+        wrongCount: 0,
+        startTime: null,
+        sessionWords: [] // 记录本次练习过的单词及其结果
     },
+
+    // 防止连点标志
+    isProcessing: false,
 
     /**
      * 初始化UI
@@ -48,20 +53,38 @@ const UI = {
 
     bindNavigation() {
         const navItems = document.querySelectorAll('.nav-item');
-
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 const page = item.dataset.page;
-                this.navigateTo(page);
+                if (page === 'learn') {
+                    this.startLearning('learn');
+                } else if (page === 'review') {
+                    this.navigateTo('review'); // 显示复习概览页，不直接开始
+                } else if (page) {
+                    this.navigateTo(page);
+                }
             });
         });
 
-        // 首页按钮
+        // ========================================
+        // 学习总结页面
+        // ========================================
+        document.getElementById('summaryBackBtn')?.addEventListener('click', () => {
+            this.navigateTo('dashboard');
+        });
+
+        document.getElementById('summaryReviewWrongBtn')?.addEventListener('click', () => {
+            this.startLearning('wrongbook');
+        });
+
+        // ========================================
+        // 首页仪表盘按钮
+        // ========================================
         document.getElementById('startLearnBtn')?.addEventListener('click', () => {
             this.startLearning('learn');
         });
 
-        document.getElementById('startReviewBtn')?.addEventListener('click', () => {
+        document.getElementById('dashboardStartReviewBtn')?.addEventListener('click', () => {
             this.startLearning('review');
         });
     },
@@ -261,12 +284,15 @@ const UI = {
         }
 
         // 初始化学习会话
+        this.isProcessing = false;
         this.learningSession = {
             words: Vocabulary.shuffle(words),
             currentIndex: 0,
             mode: sessionMode,
             correctCount: 0,
-            wrongCount: 0
+            wrongCount: 0,
+            startTime: Date.now(),
+            sessionWords: []
         };
 
         // 切换到学习页面
@@ -276,7 +302,9 @@ const UI = {
 
     displayCurrentWord() {
         const session = this.learningSession;
-        if (session.currentIndex >= session.words.length) {
+
+        // 安全检查：如果没有单词或已索引越界，则完成学习
+        if (!session.words || session.words.length === 0 || session.currentIndex >= session.words.length) {
             this.finishLearning();
             return;
         }
@@ -435,12 +463,20 @@ const UI = {
 
 
     handleAnswer(correct) {
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
         const session = this.learningSession;
         const word = session.words[session.currentIndex];
 
         if (session.mode === 'learn') {
             // 首次学习
             SpacedRepetition.markAsLearned(word.word, correct);
+            if (correct) {
+                session.correctCount++;
+            } else {
+                session.wrongCount++;
+            }
         } else {
             // 复习
             if (correct) {
@@ -452,13 +488,24 @@ const UI = {
             }
         }
 
+        // 记录到本次会话
+        session.sessionWords.push({
+            word: word.word,
+            correct: correct
+        });
+
         // 检查成就
         const newAchievements = Achievement.checkAllAchievements();
         newAchievements.forEach(a => Achievement.showUnlockNotification(a));
 
         // 下一个单词
         session.currentIndex++;
-        this.displayCurrentWord();
+
+        // 延迟重置处理标志，确保转场逻辑完成
+        setTimeout(() => {
+            this.isProcessing = false;
+            this.displayCurrentWord();
+        }, 100);
     },
 
     // ========================================
@@ -500,6 +547,8 @@ const UI = {
     },
 
     checkSpelling() {
+        if (this.isProcessing) return;
+
         const input = document.getElementById('spellingInput');
         const feedback = document.getElementById('spellingFeedback');
         const session = this.learningSession;
@@ -568,6 +617,8 @@ const UI = {
     },
 
     checkListening() {
+        if (this.isProcessing) return;
+
         const input = document.getElementById('listeningInput');
         const feedback = document.getElementById('listeningFeedback');
         const session = this.learningSession;
@@ -704,35 +755,79 @@ const UI = {
 
     finishLearning() {
         const session = this.learningSession;
-        const total = session.words.length;
 
-        let message = `本次学习完成！共 ${total} 个单词`;
-        if (session.mode !== 'learn') {
-            message += `\n正确: ${session.correctCount} | 错误: ${session.wrongCount}`;
-        }
+        // 渲染总结页面数据
+        this.renderSummaryPage();
 
-        this.showModal('学习完成', `
-            <div style="text-align:center; padding: 20px;">
-                <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
-                <p style="font-size: 18px; margin-bottom: 10px;">${message}</p>
-            </div>
-        `, [
-            {
-                text: '返回首页', primary: true, action: () => {
-                    this.closeModal();
-                    this.navigateTo('dashboard');
-                }
-            }
-        ]);
+        // 切换到总结页面
+        this.navigateTo('summary');
 
-        // 重置会话
+        // 重置会话状态
         this.learningSession = {
             words: [],
             currentIndex: 0,
-            mode: 'learn',
+            mode: session.mode,
             correctCount: 0,
-            wrongCount: 0
+            wrongCount: 0,
+            startTime: null,
+            sessionWords: []
         };
+    },
+
+    /**
+     * 渲染学习总结页面
+     */
+    renderSummaryPage() {
+        const session = this.learningSession;
+        const total = session.words.length;
+        const correct = session.correctCount;
+        const wrong = session.wrongCount;
+        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+        // 计算时间
+        const durationMs = Date.now() - (session.startTime || Date.now());
+        const seconds = Math.floor((durationMs / 1000) % 60);
+        const minutes = Math.floor(durationMs / (1000 * 60));
+        const durationText = minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
+
+        // 填充基本信息
+        const titleEl = document.getElementById('summaryTitle');
+        const subtitleEl = document.getElementById('summarySubtitle');
+
+        if (accuracy >= 100) {
+            titleEl.textContent = '完胜！本轮全对 🌟';
+            subtitleEl.textContent = '已经没有什么能难倒你了！';
+        } else if (accuracy >= 80) {
+            titleEl.textContent = '太棒了！表现优异 👍';
+            subtitleEl.textContent = '继续保持，离目标越来越近了';
+        } else {
+            titleEl.textContent = '学习完成！继续加油 💪';
+            subtitleEl.textContent = '温故而知新，多复习错题会更有收获';
+        }
+
+        document.getElementById('summaryTotal').textContent = total;
+        document.getElementById('summaryCorrect').textContent = correct;
+        document.getElementById('summaryAccuracy').textContent = accuracy + '%';
+        document.getElementById('summaryDuration').textContent = durationText;
+
+        // 渲染单词列表
+        const listContainer = document.getElementById('summaryWordList');
+        if (listContainer) {
+            listContainer.innerHTML = session.sessionWords.map(sw => {
+                return `
+                    <div class="summary-word-item ${sw.correct ? 'correct' : 'wrong'}">
+                        <span class="status-icon">${sw.correct ? '✓' : '✗'}</span>
+                        <span class="word-text">${sw.word}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 处理复习错词按钮显示/隐藏
+        const reviewWrongBtn = document.getElementById('summaryReviewWrongBtn');
+        if (reviewWrongBtn) {
+            reviewWrongBtn.style.display = wrong > 0 ? 'inline-flex' : 'none';
+        }
     },
 
     // ========================================
@@ -916,7 +1011,7 @@ const UI = {
         if (el('statAccuracy')) el('statAccuracy').textContent = overview.accuracy + '%';
 
         // 绑定开始复习按钮
-        const startBtn = document.getElementById('startReviewBtn');
+        const startBtn = document.getElementById('reviewStartReviewBtn');
         if (startBtn) {
             startBtn.onclick = () => this.startLearning('review');
             startBtn.disabled = count === 0;
